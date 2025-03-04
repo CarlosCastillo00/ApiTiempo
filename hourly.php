@@ -40,7 +40,7 @@
     </div>
 
     <!-- Botón para ir a la página principal de clima -->
-    <a href="weather.php" class="btn">Inicio</a>
+    <a href="index.php" class="btn">Inicio</a>
 
     <?php
     // Definir la clave API de OpenWeatherMap (reemplazar con tu propia clave)
