@@ -5,6 +5,24 @@
     <title>Previsión Semanal</title>
     <link rel="stylesheet" href="css/styles.css"> <!-- Enlace a la hoja de estilos externa -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Carga de la librería Chart.js -->
+    <style>
+        /* Estilo para el botón */
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color:rgb(12, 107, 209);
+            color: white;
+            text-align: center;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        /* Estilo para el botón cuando se pasa el mouse por encima */
+        .btn:hover {
+            background-color:rgb(4, 82, 166);
+        }
+    </style>
 </head>
 <body>
     <h1>Previsión Semanal</h1>
@@ -15,6 +33,8 @@
             <!-- Aquí se mostrarán los iconos del clima -->
         </div>
     </div>
+      <!-- Botón para ir a la página principal de clima -->
+      <a href="index.php" class="btn">Inicio</a>
 
     <?php
     // Clave de API para obtener los datos del clima
