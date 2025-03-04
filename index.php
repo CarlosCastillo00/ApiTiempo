@@ -26,7 +26,7 @@
     // Comprobar si se ha enviado el parámetro 'city' en la solicitud GET
     if (isset($_GET['city'])) {
         // Definir la clave API de OpenWeatherMap 
-        $apiKey = '6a6eb3abecb148a9e05442149b79cb1f'; 
+        $apiKey = ''; 
         // Obtener el nombre de la ciudad desde la solicitud y codificarlo para la URL
         $city = urlencode($_GET['city']);
         // URL para obtener las coordenadas de la ciudad (geolocalización)
