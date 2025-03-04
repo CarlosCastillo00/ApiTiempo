@@ -44,7 +44,7 @@
 
     <?php
     // Definir la clave API de OpenWeatherMap (reemplazar con tu propia clave)
-    $apiKey = '6a6eb3abecb148a9e05442149b79cb1f';
+    $apiKey = '';
     // Obtener las coordenadas latitud y longitud desde los parámetros GET
     $lat = $_GET['lat'];
     $lon = $_GET['lon'];
