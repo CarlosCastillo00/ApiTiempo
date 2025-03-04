@@ -66,9 +66,11 @@ sudo systemctl restart apache2
 
 ## Accediendo a la Aplicación <a name="id4"></a>
 
-Una vez la instancia esté en funcionamiento, podemos acceder a la aplicación mediante la IP pública proporcionada por AWS. Al acceder, veremos un formulario donde podemos ingresar el nombre de la ciudad que queremos consultar.
+Una vez la instancia esté en funcionamiento, podemos acceder a la aplicación mediante una IP elástica que hemos creado en Amazon. Esta IP la hemos asociado a un dominio.
+El dominio es eltiempocarloscast.zapto.org
 
-![image](https://github.com/user-attachments/assets/3a534dc9-de00-438e-b214-29fd1c999ec6)
+![image](https://github.com/user-attachments/assets/d78c4f29-b441-4276-b856-9b0f103d9590)
+
 
 Después de hacer clic en "Buscar", la página mostrará la información meteorológica de la ciudad introducida.
 
