@@ -38,7 +38,7 @@
 
     <?php
     // Clave de API para obtener los datos del clima
-    $apiKey = '6a6eb3abecb148a9e05442149b79cb1f'; 
+    $apiKey = ''; 
     
     // Obtener la latitud y longitud de la URL
     $lat = $_GET['lat'];
