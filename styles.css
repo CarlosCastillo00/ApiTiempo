@@ -1,177 +1,154 @@
-/* Estilos generales */
+/* Estilos generales para la aplicación de clima */
+
+/* Configuración básica del cuerpo del documento */
 body {
-    font-family: 'Helvetica Neue', Arial, sans-serif;
-    background-color: #eef2f7;
-    color: #444;
-    margin: 0;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
+    font-family: 'Helvetica Neue', Arial, sans-serif; /* Fuente principal */
+    background-color: #eef2f7; /* Color de fondo */
+    color: #444; /* Color del texto */
+    margin: 0; /* Elimina márgenes */
+    padding: 20px; /* Espaciado interno */
+    display: flex; /* Usa flexbox para alinear contenidos */
+    flex-direction: column; /* Organiza los elementos en columna */
+    align-items: center; /* Centra horizontalmente */
+    justify-content: center; /* Centra verticalmente */
+    min-height: 100vh; /* Asegura que ocupe toda la altura de la ventana */
 }
 
+/* Estilos para los encabezados principales */
 h1 {
-    color: #2c3e50;
-    margin-bottom: 25px;
-    font-size: 26px;
+    color: #2c3e50; /* Color del título */
+    margin-bottom: 25px; /* Espacio inferior */
+    font-size: 26px; /* Tamaño del texto */
 }
 
-/* Estilo del formulario de búsqueda */
+/* Estilos para el formulario de búsqueda */
 form {
-    background-color: #fff;
-    padding: 22px;
-    border-radius: 10px;
-    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-    width: 100%;
-    max-width: 420px;
-    text-align: center;
+    background-color: #fff; /* Fondo blanco */
+    padding: 22px; /* Relleno interno */
+    border-radius: 10px; /* Bordes redondeados */
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1); /* Sombra para efecto de elevación */
+    margin-bottom: 20px; /* Espacio inferior */
+    width: 100%; /* Ancho completo */
+    max-width: 420px; /* Ancho máximo */
+    text-align: center; /* Texto centrado */
 }
 
 label {
-    font-weight: 600;
-    margin-right: 12px;
+    font-weight: 600; /* Texto en negrita */
+    margin-right: 12px; /* Espacio a la derecha */
 }
 
 input[type="text"] {
-    padding: 10px;
-    border: 1px solid #c8d6e5;
-    border-radius: 5px;
-    width: 75%;
-    margin-right: 12px;
+    padding: 10px; /* Espaciado interno */
+    border: 1px solid #c8d6e5; /* Borde con color especificado */
+    border-radius: 5px; /* Bordes redondeados */
+    width: 75%; /* Ocupa el 75% del ancho */
+    margin-right: 12px; /* Espaciado a la derecha */
 }
 
 button {
-    padding: 10px 18px;
-    background-color: #1abc9c;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+    padding: 10px 18px; /* Relleno interno en vertical y horizontal */
+    background-color: #1abc9c; /* Color de fondo del botón */
+    color: white; /* Color del texto */
+    border: none; /* Sin borde */
+    border-radius: 5px; /* Bordes redondeados */
+    cursor: pointer; /* Cambia el cursor a puntero */
+    transition: background-color 0.3s ease; /* Transición suave para el fondo */
 }
 
 button:hover {
-    background-color: #16a085;
+    background-color: #16a085; /* Color de fondo al pasar el mouse */
 }
 
-/* Estilo de la información del tiempo actual */
+/* Estilos para la sección de información del clima */
 .weather-info {
-    background-color: #fff;
-    padding: 22px;
-    border-radius: 10px;
-    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
-    max-width: 420px;
-    width: 100%;
-    text-align: center;
-    margin-bottom: 25px;
+    background-color: #fff; /* Fondo blanco */
+    padding: 22px; /* Relleno interno */
+    border-radius: 10px; /* Bordes redondeados */
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1); /* Sombra para efecto de elevación */
+    max-width: 420px; /* Ancho máximo */
+    width: 100%; /* Ancho completo */
+    text-align: center; /* Texto centrado */
+    margin-bottom: 25px; /* Espacio inferior */
 }
 
 .weather-info p {
-    margin: 12px 0;
-    font-size: 18px;
+    margin: 12px 0; /* Margen vertical */
+    font-size: 18px; /* Tamaño del texto */
 }
 
-.weather-info a {
-    display: inline-block;
-    margin: 12px 6px;
-    padding: 10px 18px;
-    background-color: #9b59b6;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
-}
-
-.weather-info a:hover {
-    background-color: #8e44ad;
-}
-
-/* Estilo del contenedor de previsión */
-.forecast-container {
-    background-color: #fff;
-    padding: 22px;
-    border-radius: 10px;
-    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
-    max-width: 820px;
-    width: 100%;
-    margin: 25px auto;
-}
-
-/* Estilo para los ítems de la previsión */
-.forecast-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px;
-    border-bottom: 1px solid #e2e2e2;
-}
-
-.forecast-item:last-child {
-    border-bottom: none;
-}
-
-.forecast-item p {
-    margin: 7px 0;
-    font-size: 16px;
-}
-
-.forecast-item .time {
-    font-weight: 600;
-    color: #2980b9;
-}
-
-.forecast-item .temp {
-    color: #e67e22;
-}
-
-.forecast-item .description {
-    color: #2ecc71;
-}
-
-/* Estilo para los mensajes de error */
-.error {
-    color: #e74c3c;
-    font-weight: bold;
-    margin-top: 25px;
-    font-size: 18px;
-}
-
-/* Enlaces de navegación */
+/* Estilos para los enlaces de navegación */
 .nav-links {
-    margin-top: 25px;
-    text-align: center;
+    margin-top: 25px; /* Margen superior */
+    text-align: center; /* Texto centrado */
 }
 
 .nav-links a {
-    display: inline-block;
-    margin: 7px;
-    padding: 10px 18px;
-    background-color: #3498db;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
+    display: inline-block; /* Muestra los enlaces en línea como bloques */
+    margin: 7px; /* Espaciado alrededor */
+    padding: 10px 18px; /* Relleno interno */
+    background-color: #3498db; /* Color de fondo */
+    color: white; /* Color del texto */
+    text-decoration: none; /* Sin subrayado */
+    border-radius: 5px; /* Bordes redondeados */
+    transition: background-color 0.3s ease; /* Transición suave en el color de fondo */
 }
 
 .nav-links a:hover {
-    background-color: #2980b9;
+    background-color: #2980b9; /* Cambio de color al pasar el mouse */
 }
 
-/* Estilos para los iconos del clima */
-#weatherIcons {
-    display: flex;
-    justify-content: space-evenly;
-    margin-top: 25px;
+/* Estilos para el contenedor de previsiones (horarias o semanales) */
+.forecast-container {
+    background-color: #fff; /* Fondo blanco */
+    padding: 22px; /* Relleno interno */
+    border-radius: 10px; /* Bordes redondeados */
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1); /* Sombra */
+    max-width: 820px; /* Ancho máximo */
+    width: 100%; /* Ancho completo */
+    margin: 25px auto; /* Centrado horizontalmente y margen vertical */
 }
 
-.weather-icon {
-    text-align: center;
+/* Estilos para elementos individuales dentro de la previsión */
+.item-prevision {
+    display: flex; /* Usa flexbox */
+    justify-content: space-between; /* Distribuye equitativamente */
+    align-items: center; /* Alinea verticalmente */
+    padding: 12px; /* Relleno interno */
+    border-bottom: 1px solid #e2e2e2; /* Línea inferior */
 }
 
-.weather-icon img {
-    width: 55px;
-    height: 55px;
+.item-prevision:last-child {
+    border-bottom: none; /* Sin línea en el último elemento */
+}
+
+.item-prevision p {
+    margin: 7px 0; /* Margen vertical */
+    font-size: 16px; /* Tamaño del texto */
+}
+
+/* Clases para estilizar textos específicos en previsiones */
+.time {
+    font-weight: 600; /* Texto en negrita */
+    color: #2980b9; /* Color */
+}
+
+.temp {
+    color: #e67e22; /* Color para las temperaturas */
+}
+
+.description {
+    color: #2ecc71; /* Color para la descripción del clima */
+}
+
+/* Estilos para secciones de iconos en previsiones */
+#weatherIcons, #hourlyIcons, #weeklyIcons {
+    display: flex; /* Muestra los iconos en línea */
+    justify-content: space-evenly; /* Distribución equitativa */
+    margin-top: 25px; /* Espacio superior */
+}
+
+#weatherIcons img, #hourlyIcons img, #weeklyIcons img {
+    width: 55px; /* Ancho de las imágenes */
+    height: 55px; /* Alto de las imágenes */
 }
