@@ -1,149 +1,135 @@
+<?php
+// Incluye el archivo de funciones comunes.
+require_once 'utils.php';
+
+$apiKey = ''; // Define tu clave API aquí.
+
+// Verifica que se hayan recibido las coordenadas (latitud y longitud) por GET.
+if (!isset($_GET['lat']) || !isset($_GET['lon'])) { // Comprueba si los parámetros existen.
+    die("<p class='error'>No se proporcionaron las coordenadas.</p>"); // Muestra un mensaje de error y para la ejecución.
+}
+
+$lat = $_GET['lat']; // Asigna la latitud recibida.
+$lon = $_GET['lon']; // Asigna la longitud recibida.
+
+// Obtiene el pronóstico utilizando las coordenadas.
+$forecast = getForecast($lat, $lon, $apiKey);
+if (!$forecast) { // Comprueba si se obtuvieron datos.
+    die("<p class='error'>Error al obtener la previsión por horas.</p>"); // Muestra error y detiene la ejecución.
+}
+
+// Inicializa arrays para almacenar datos del gráfico y códigos de iconos.
+$labels = [];      // Almacena las etiquetas (horario).
+$temps = [];       // Almacena las temperaturas.
+$rainValues = [];  // Almacena los valores de lluvia.
+$icons = [];       // Almacena el código del icono del clima.
+
+foreach ($forecast['list'] as $item) { // Recorre todos los registros del pronóstico.
+    $labels[] = date('H:i', $item['dt']); // Convierte el timestamp a formato "Hora:Minutos" y lo añade.
+    $temps[] = $item['main']['temp']; // Añade la temperatura al array.
+    $rainValues[] = isset($item['rain']['3h']) ? $item['rain']['3h'] : 0; // Añade la lluvia (si existe) o 0.
+    $icons[] = $item['weather'][0]['icon']; // Obtiene y guarda el código del icono del clima.
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <!-- Definir la codificación de caracteres como UTF-8 -->
     <meta charset="UTF-8">
-    <!-- Título de la página que se muestra en la pestaña del navegador -->
     <title>Previsión por Horas</title>
-    <!-- Vincular el archivo de estilos CSS para el diseño de la página -->
+    <!-- Enlaza la hoja de estilos -->
     <link rel="stylesheet" href="css/styles.css">
-    <!-- Cargar la librería Chart.js para generar gráficos -->
+    <!-- Incluye Chart.js para la gráfica -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Estilo para el botón */
+        /* Estilos específicos para el botón y la sección de iconos en la página de previsión por horas */
         .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color:rgb(12, 107, 209);
-            color: white;
-            text-align: center;
-            border-radius: 5px;
-            text-decoration: none;
-            font-size: 16px;
+            display: inline-block; /* Hace que el botón se comporte como un bloque en línea */
+            padding: 10px 20px; /* Espaciado interno */
+            background-color: rgb(12, 107, 209); /* Color de fondo */
+            color: white; /* Color de texto */
+            text-align: center; /* Centra el texto */
+            border-radius: 5px; /* Bordes redondeados */
+            text-decoration: none; /* Sin subrayado en enlaces */
+            font-size: 16px; /* Tamaño del texto */
         }
-
-        /* Estilo para el botón cuando se pasa el mouse por encima */
-        .btn:hover {
-            background-color:rgb(4, 82, 166);
+        .btn:hover { /* Efecto al pasar el mouse */
+            background-color: rgb(4, 82, 166); /* Nuevo color de fondo */
+        }
+        /* Estilos para el contenedor de iconos */
+        #hourlyIcons {
+            display: flex; /* Distribuye elementos en línea */
+            flex-wrap: wrap; /* Permite ir a la siguiente línea si es necesario */
+            justify-content: center; /* Centra los iconos horizontalmente */
+            margin-top: 20px; /* Margin superior */
+        }
+        #hourlyIcons img {
+            width: 50px; /* Ancho de las imágenes */
+            height: 50px; /* Alto de las imágenes */
+            margin: 5px; /* Espaciado entre iconos */
         }
     </style>
 </head>
 <body>
-    <!-- Encabezado principal de la página -->
     <h1>Previsión por Horas</h1>
-
-    <div class="forecast-container">
-        <!-- Subtítulo para el gráfico de temperaturas y lluvia -->
+    <div class="forecast-container"> <!-- Contenedor para la previsión -->
         <h2>Temperaturas y Lluvia por Horas</h2>
-        <!-- El lienzo donde se dibujará el gráfico -->
-        <canvas id="hourlyChart"></canvas>
+        <canvas id="hourlyChart"></canvas> <!-- Área para el gráfico -->
+        <div id="hourlyIcons"> <!-- Contenedor para mostrar los iconos -->
+            <?php
+            // Recorre el array de iconos y muestra cada imagen usando la URL correspondiente.
+            foreach ($icons as $icon) {
+                echo "<img src='http://openweathermap.org/img/wn/{$icon}@2x.png' alt='Icono del clima'>";
+            }
+            ?>
+        </div>
     </div>
-
-    <!-- Botón para ir a la página principal de clima -->
-    <a href="index.php" class="btn">Inicio</a>
-
-    <?php
-    // Definir la clave API de OpenWeatherMap (reemplazar con tu propia clave)
-    $apiKey = '';
-    // Obtener las coordenadas latitud y longitud desde los parámetros GET
-    $lat = $_GET['lat'];
-    $lon = $_GET['lon'];
-
-    // URL para obtener la previsión por horas usando las coordenadas obtenidas
-    $hourlyUrl = "https://api.openweathermap.org/data/2.5/forecast?lat={$lat}&lon={$lon}&appid={$apiKey}&units=metric&lang=es";
-    // Hacer una solicitud para obtener los datos de la previsión por horas
-    $hourlyResponse = @file_get_contents($hourlyUrl);
-
-    // Comprobar si hubo un error al obtener los datos
-    if ($hourlyResponse === FALSE) {
-        echo "<p class='error'>Error al obtener la previsión por horas.</p>";
-        exit; // Detener el script si hay error
-    }
-
-    // Decodificar la respuesta JSON
-    $hourlyData = json_decode($hourlyResponse, true);
-
-    // Preparar arrays para almacenar los datos del gráfico
-    $labels = []; // Etiquetas para las horas
-    $temperatures = []; // Temperaturas por hora
-    $rainfall = []; // Lluvia por hora
-
-    // Recorrer los datos de la previsión por horas
-    foreach ($hourlyData['list'] as $hour) {
-        // Obtener la hora en formato HH:MM
-        $labels[] = date('H:i', $hour['dt']);
-        // Obtener la temperatura en grados Celsius
-        $temperatures[] = $hour['main']['temp'];
-        // Obtener la cantidad de lluvia en mm (0 si no hay lluvia)
-        $rainfall[] = isset($hour['rain']['3h']) ? $hour['rain']['3h'] : 0;
-    }
-    ?>
-
+    <a href="index.php" class="btn">Inicio</a> <!-- Botón para regresar a la página principal -->
     <script>
-        // Pasar los datos de PHP a JavaScript para el gráfico
+        // Convierte los arrays PHP a variables JavaScript utilizando json_encode.
         const labels = <?php echo json_encode($labels); ?>;
-        const temperatures = <?php echo json_encode($temperatures); ?>;
-        const rainfall = <?php echo json_encode($rainfall); ?>;
-
-        // Configuración del gráfico
-        const ctx = document.getElementById('hourlyChart').getContext('2d');
-        const hourlyChart = new Chart(ctx, {
-            type: 'bar', // Tipo de gráfico principal (barra)
+        const temps = <?php echo json_encode($temps); ?>;
+        const rainValues = <?php echo json_encode($rainValues); ?>;
+        const ctx = document.getElementById('hourlyChart').getContext('2d'); // Obtiene el contexto del canvas para Chart.js.
+        
+        // Crea un gráfico utilizando Chart.js.
+        new Chart(ctx, {
+            type: 'bar', // Tipo base de gráfico.
             data: {
-                labels: labels,
+                labels: labels, // Etiquetas del eje X.
                 datasets: [
                     {
-                        label: 'Temperatura (°C)', // Dataset para la temperatura
-                        type: 'line', // Tipo de gráfico para la temperatura (línea)
-                        data: temperatures,
-                        backgroundColor: 'rgba(70, 151, 205, 0.2)',
-                        borderColor: 'rgb(96, 166, 213)',
-                        borderWidth: 2,
-                        fill: true,
-                        yAxisID: 'y', // Eje y para las temperaturas
+                        label: 'Temperatura (°C)', // Leyenda del dataset.
+                        type: 'line', // Muestra datos de temperatura como línea.
+                        data: temps, // Datos de temperatura.
+                        backgroundColor: 'rgba(70, 151, 205, 0.2)', // Color de fondo de la línea.
+                        borderColor: 'rgb(96, 166, 213)', // Color del borde de la línea.
+                        borderWidth: 2, // Grosor del borde.
+                        fill: true, // Rellena el área debajo de la línea.
+                        yAxisID: 'y' // Asociado al eje Y principal.
                     },
                     {
-                        label: 'Lluvia (mm)', // Dataset para la lluvia
-                        type: 'bar', // Tipo de gráfico para la lluvia (barra)
-                        data: rainfall,
-                        backgroundColor: 'rgba(58, 168, 168, 0.5)',
-                        borderColor: 'rgb(46, 185, 185)',
-                        borderWidth: 1,
-                        yAxisID: 'y1', // Eje y1 para la lluvia
+                        label: 'Lluvia (mm)', // Leyenda para datos de lluvia.
+                        type: 'bar', // Muestra datos de lluvia en forma de barras.
+                        data: rainValues, // Datos de lluvia.
+                        backgroundColor: 'rgba(58, 168, 168, 0.5)', // Color de fondo de las barras.
+                        borderColor: 'rgb(46, 185, 185)', // Color del borde de las barras.
+                        borderWidth: 1, // Grosor del borde.
+                        yAxisID: 'y1' // Asociado a un eje Y secundario.
                     }
                 ]
             },
             options: {
-                responsive: true,
+                responsive: true, // Hace el gráfico adaptable a diferentes tamaños.
                 plugins: {
-                    title: {
-                        display: true,
-                        text: 'Temperaturas y Lluvia por Horas'
-                    }
+                    title: { display: true, text: 'Temperaturas y Lluvia por Horas' } // Título del gráfico.
                 },
                 scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Hora' // Título para el eje X (Hora)
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Temperatura (°C)' // Título para el eje Y (Temperatura)
-                        },
-                        position: 'left', // Eje izquierdo para la temperatura
-                    },
-                    y1: {
-                        title: {
-                            display: true,
-                            text: 'Lluvia (mm)' // Título para el eje Y1 (Lluvia)
-                        },
-                        position: 'right', // Eje derecho para la lluvia
-                        grid: {
-                            drawOnChartArea: false // Desactiva la cuadrícula en el eje de la lluvia
-                        }
+                    x: { title: { display: true, text: 'Hora' } }, // Configuración del eje X.
+                    y: { title: { display: true, text: 'Temperatura (°C)' }, position: 'left' }, // Configuración del eje Y principal.
+                    y1: { // Configuración del eje Y secundario.
+                        title: { display: true, text: 'Lluvia (mm)' },
+                        position: 'right',
+                        grid: { drawOnChartArea: false } // Evita que la cuadrícula del eje secundario se dibuje sobre el gráfico.
                     }
                 }
             }
