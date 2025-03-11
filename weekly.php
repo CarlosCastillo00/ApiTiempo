@@ -1,197 +1,172 @@
+
+<?php
+// Incluye el archivo de funciones comunes.
+require_once 'utils.php';
+
+$apiKey = ''; // Define tu clave API.
+
+// Comprueba que se hayan recibido las coordenadas a través de GET.
+if (!isset($_GET['lat']) || !isset($_GET['lon'])) { // Verifica la existencia de latitud y longitud.
+    die("<p class='error'>No se proporcionaron las coordenadas.</p>"); // Muestra un error y termina la ejecución si faltan parámetros.
+}
+
+$lat = $_GET['lat']; // Asigna la latitud.
+$lon = $_GET['lon']; // Asigna la longitud.
+
+// Obtiene el pronóstico del clima utilizando la función getForecast.
+$forecast = getForecast($lat, $lon, $apiKey);
+if (!$forecast) { // Si no se obtienen datos.
+    die("<p class='error'>Error al obtener la previsión semanal.</p>"); // Muestra un error y detiene la ejecución.
+}
+
+// Agrupa los datos por día.
+$dailyData = [];
+foreach ($forecast['list'] as $item) { // Recorre cada registro del pronóstico.
+    $date = date('Y-m-d', $item['dt']); // Convierte el timestamp a una fecha (YYYY-MM-DD).
+    if (!isset($dailyData[$date])) { // Si aún no se ha creado un registro para este día,
+        $dailyData[$date] = [
+            'min_temp' => $item['main']['temp_min'], // Establece la temperatura mínima del día.
+            'max_temp' => $item['main']['temp_max'], // Establece la temperatura máxima del día.
+            'rain' => isset($item['rain']['3h']) ? $item['rain']['3h'] : 0, // Establece la lluvia (o 0 si no hay datos).
+            'date' => $date, // Guarda la fecha.
+            'icon' => $item['weather'][0]['icon'] // Guarda el código del icono representativo.
+        ];
+    } else { // Si ya existe un registro para este día, actualiza los datos.
+        if ($item['main']['temp_min'] < $dailyData[$date]['min_temp']) { // Comprueba si la nueva temperatura mínima es menor.
+            $dailyData[$date]['min_temp'] = $item['main']['temp_min']; // Actualiza la temperatura mínima.
+        }
+        if ($item['main']['temp_max'] > $dailyData[$date]['max_temp']) { // Comprueba si la nueva máxima es mayor.
+            $dailyData[$date]['max_temp'] = $item['main']['temp_max']; // Actualiza la temperatura máxima.
+        }
+        if (isset($item['rain']['3h'])) { // Si existe información de lluvia,
+            $dailyData[$date]['rain'] += $item['rain']['3h']; // Suma la lluvia a la acumulada del día.
+        }
+    }
+}
+
+// Prepara arrays para etiquetas, temperaturas, lluvia e iconos.
+$labels = []; // Almacena las etiquetas (fecha formateada).
+$temps = [];  // Almacena arrays con temperaturas mínimas y máximas.
+$rain = [];   // Almacena los valores de lluvia diarios.
+$icons = [];  // Almacena el código de icono representativo de cada día.
+
+foreach ($dailyData as $day) { // Recorre cada día con datos.
+    $labels[] = date('D, M j', strtotime($day['date'])); // Formatea y guarda la fecha (por ejemplo, "Mon, Mar 11").
+    $temps[] = [ // Guarda las temperaturas mínima y máxima en un array.
+        'min' => $day['min_temp'],
+        'max' => $day['max_temp']
+    ];
+    $rain[] = $day['rain']; // Guarda el total de lluvia del día.
+    $icons[] = $day['icon']; // Guarda el código del icono representativo.
+}
+?>
 <!DOCTYPE html> 
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Previsión Semanal</title>
-    <link rel="stylesheet" href="css/styles.css"> <!-- Enlace a la hoja de estilos externa -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Carga de la librería Chart.js -->
+    <!-- Enlaza el archivo de estilos -->
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Incluye Chart.js para generar el gráfico -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Estilo para el botón */
+        /* Estilos para el botón y para el contenedor de iconos en la página semanal */
         .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color:rgb(12, 107, 209);
-            color: white;
-            text-align: center;
-            border-radius: 5px;
-            text-decoration: none;
-            font-size: 16px;
+            display: inline-block; /* Hace el botón en línea */
+            padding: 10px 20px; /* Espaciado interno */
+            background-color: rgb(12, 107, 209); /* Color de fondo */
+            color: white; /* Color del texto */
+            text-align: center; /* Centra el texto */
+            border-radius: 5px; /* Bordes redondeados */
+            text-decoration: none; /* Sin subrayado */
+            font-size: 16px; /* Tamaño del texto */
         }
-
-        /* Estilo para el botón cuando se pasa el mouse por encima */
-        .btn:hover {
-            background-color:rgb(4, 82, 166);
+        .btn:hover { /* Efecto al pasar el mouse */
+            background-color: rgb(4, 82, 166); /* Nuevo color de fondo */
+        }
+        /* Estilos para el contenedor de iconos representativos */
+        #weeklyIcons {
+            display: flex; /* Muestra los iconos en línea */
+            justify-content: center; /* Centra horizontalmente */
+            flex-wrap: wrap; /* Permite saltos de línea si es necesario */
+            margin-top: 20px; /* Espacio superior */
+        }
+        #weeklyIcons img {
+            width: 50px; /* Ancho de los iconos */
+            height: 50px; /* Alto de los iconos */
+            margin: 5px; /* Espaciado entre iconos */
         }
     </style>
 </head>
 <body>
     <h1>Previsión Semanal</h1>
-    <div class="forecast-container">
+    <div class="forecast-container"> <!-- Contenedor principal -->
         <h2>Temperaturas y Lluvia Semanal</h2>
-        <canvas id="weeklyChart"></canvas> <!-- Canvas donde se renderizará el gráfico -->
-        <div id="weatherIcons">
-            <!-- Aquí se mostrarán los iconos del clima -->
+        <canvas id="weeklyChart"></canvas> <!-- Área del gráfico -->
+        <div id="weeklyIcons"> <!-- Contenedor para iconos representativos de cada día -->
+            <?php
+            // Recorre el array de iconos y muestra cada imagen.
+            foreach ($icons as $icon) {
+                echo "<img src='http://openweathermap.org/img/wn/{$icon}@2x.png' alt='Icono del clima'>";
+            }
+            ?>
         </div>
     </div>
-      <!-- Botón para ir a la página principal de clima -->
-      <a href="index.php" class="btn">Inicio</a>
-
-    <?php
-    // Clave de API para obtener los datos del clima
-    $apiKey = ''; 
-    
-    // Obtener la latitud y longitud de la URL
-    $lat = $_GET['lat'];
-    $lon = $_GET['lon'];
-
-    // Construcción de la URL de la API de OpenWeatherMap
-    $url = "https://api.openweathermap.org/data/2.5/forecast?lat={$lat}&lon={$lon}&appid={$apiKey}&units=metric&lang=es";
-    $response = @file_get_contents($url); // Realiza la petición a la API
-
-    // Verifica si hubo un error en la petición
-    if ($response === FALSE) {
-        echo "<p class='error'>Error al obtener la previsión semanal.</p>";
-        exit;
-    }
-
-    // Decodifica la respuesta JSON en un array de PHP
-    $data = json_decode($response, true);
-
-    // Agrupación de datos por día
-    $dailyData = [];
-    foreach ($data['list'] as $forecast) {
-        $date = date('Y-m-d', $forecast['dt']); // Extrae la fecha de cada registro
-        
-        // Si el día aún no ha sido registrado, inicializa los valores
-        if (!isset($dailyData[$date])) {
-            $dailyData[$date] = [
-                'min_temp' => $forecast['main']['temp_min'],
-                'max_temp' => $forecast['main']['temp_max'],
-                'rain' => $forecast['rain']['3h'] ?? 0, // Precipitación acumulada en mm
-                'icon' => $forecast['weather'][0]['icon'], // Icono del clima
-                'date' => $date
-            ];
-        } else {
-            // Actualiza la temperatura mínima y máxima
-            if ($forecast['main']['temp_min'] < $dailyData[$date]['min_temp']) {
-                $dailyData[$date]['min_temp'] = $forecast['main']['temp_min'];
-            }
-            if ($forecast['main']['temp_max'] > $dailyData[$date]['max_temp']) {
-                $dailyData[$date]['max_temp'] = $forecast['main']['temp_max'];
-            }
-            // Suma la precipitación si hay datos
-            if (isset($forecast['rain']['3h'])) {
-                $dailyData[$date]['rain'] += $forecast['rain']['3h'];
-            }
-        }
-    }
-
-    // Preparación de los datos para JavaScript
-    $labels = []; // Días de la semana
-    $temperatures = []; // Temperaturas mínimas y máximas
-    $rain = []; // Precipitación en mm
-    $icons = []; // Iconos del clima
-
-    foreach ($dailyData as $day) {
-        $labels[] = date('D, M j', strtotime($day['date'])); // Formato de fecha
-        $temperatures[] = [
-            'min' => $day['min_temp'],
-            'max' => $day['max_temp']
-        ];
-        $rain[] = $day['rain'];
-        $icons[] = $day['icon'];
-    }
-    ?>
-
+    <a href="index.php" class="btn">Inicio</a> <!-- Botón para regresar a la página principal -->
     <script>
-        // Datos importados desde PHP a JavaScript
+        // Convierte los arrays PHP a variables JavaScript.
         const labels = <?php echo json_encode($labels); ?>;
-        const temperatures = <?php echo json_encode($temperatures); ?>;
+        const temps = <?php echo json_encode($temps); ?>;
         const rain = <?php echo json_encode($rain); ?>;
-        const icons = <?php echo json_encode($icons); ?>;
-
-        // Configuración del gráfico con Chart.js
-        const ctx = document.getElementById('weeklyChart').getContext('2d');
-        const weeklyChart = new Chart(ctx, {
-            type: 'bar', // Tipo de gráfico: barras
+        const ctx = document.getElementById('weeklyChart').getContext('2d'); // Obtiene el contexto del canvas.
+        
+        // Crea el gráfico combinando barras y línea usando Chart.js.
+        new Chart(ctx, {
+            type: 'bar', // Tipo base de gráfico.
             data: {
-                labels: labels,
+                labels: labels, // Etiquetas del eje X.
                 datasets: [
                     {
-                        label: 'Temperatura Mínima (°C)',
-                        data: temperatures.map(temp => temp.min),
-                        backgroundColor: 'rgba(44, 137, 199, 0.2)',
-                        borderColor: 'rgb(67, 158, 218)',
-                        borderWidth: 1,
+                        label: 'Temperatura Mínima (°C)', // Leyenda para la temperatura mínima.
+                        data: temps.map(t => t.min), // Extrae las temperaturas mínimas.
+                        backgroundColor: 'rgba(44, 137, 199, 0.2)', // Color de fondo de las barras.
+                        borderColor: 'rgb(67, 158, 218)', // Color del borde de las barras.
+                        borderWidth: 1 // Grosor del borde.
                     },
                     {
-                        label: 'Temperatura Máxima (°C)',
-                        data: temperatures.map(temp => temp.max),
-                        backgroundColor: 'rgba(231, 117, 91, 0.18)',
-                        borderColor: 'rgb(224, 53, 90)',
-                        borderWidth: 1,
+                        label: 'Temperatura Máxima (°C)', // Leyenda para la temperatura máxima.
+                        data: temps.map(t => t.max), // Extrae las temperaturas máximas.
+                        backgroundColor: 'rgba(231, 117, 91, 0.18)', // Color de fondo de las barras.
+                        borderColor: 'rgb(224, 53, 90)', // Color del borde de las barras.
+                        borderWidth: 1 // Grosor del borde.
                     },
                     {
-                        label: 'Lluvia (mm)',
-                        data: rain,
-                        backgroundColor: 'rgba(27, 118, 118, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1,
-                        type: 'line', // Se representa como línea
-                        yAxisID: 'rainAxis',
+                        label: 'Lluvia (mm)', // Leyenda para la lluvia.
+                        data: rain, // Datos de lluvia.
+                        backgroundColor: 'rgba(27, 118, 118, 0.2)', // Color de fondo para la línea.
+                        borderColor: 'rgba(75, 192, 192, 1)', // Color de la línea.
+                        borderWidth: 1, // Grosor de la línea.
+                        type: 'line', // Muestra los datos de lluvia como una línea.
+                        yAxisID: 'rainAxis' // Asocia a un eje Y secundario.
                     }
                 ]
             },
             options: {
-                responsive: true,
+                responsive: true, // Hace el gráfico adaptable.
                 plugins: {
-                    title: {
-                        display: true,
-                        text: 'Temperaturas y Lluvia Semanal'
-                    }
+                    title: { display: true, text: 'Temperaturas y Lluvia Semanal' } // Define el título del gráfico.
                 },
                 scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Día'
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Temperatura (°C)'
-                        }
-                    },
-                    rainAxis: {
-                        position: 'right',
-                        title: {
-                            display: true,
-                            text: 'Lluvia (mm)'
-                        },
-                        grid: {
-                            display: false,
-                        }
+                    x: { title: { display: true, text: 'Día' } }, // Ajusta el título del eje X.
+                    y: { title: { display: true, text: 'Temperatura (°C)' } }, // Ajusta el título del eje Y principal.
+                    rainAxis: { // Configuración para el eje secundario.
+                        position: 'right', // Ubicación en el lado derecho.
+                        title: { display: true, text: 'Lluvia (mm)' }, // Título del eje secundario.
+                        grid: { display: false } // Oculta la cuadrícula para este eje.
                     }
                 }
             }
         });
     </script>
-
-    <style>
-        /* Estilos para los iconos del clima */
-        #weatherIcons {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-        }
-        .weather-icon {
-            text-align: center;
-        }
-        .weather-icon img {
-            width: 50px;
-            height: 50px;
-        }
-    </style>
 </body>
 </html>
