@@ -74,6 +74,13 @@ Una vez que la instancia está operativa, se puede acceder a la aplicación a tr
 En la página principal se encuentra un buscador para ingresar el nombre de una ciudad y consultar su clima.
 
 Si la ciudad es válida, se mostrarán los siguientes datos:
+![image](https://github.com/user-attachments/assets/6bd614b9-fa01-4ad4-a44d-fc43ef434e64)
+
+![image](https://github.com/user-attachments/assets/3dee13f0-20ec-48af-be7a-082cf4821f5b)
+
+![image](https://github.com/user-attachments/assets/8b1bbf07-abf5-4643-b1a3-f15543443c3e)
+
+
 - Información del clima en tiempo real, incluyendo un icono representativo obtenido de la API.
 - Pronóstico por horas con un gráfico que combina líneas y barras, y una sección de iconos para indicar el clima en cada intervalo.
 - Pronóstico semanal que agrupa datos diarios (temperaturas mínimas y máximas, acumulación de lluvia) y muestra un icono representativo para cada día.
@@ -87,10 +94,10 @@ A lo largo del desarrollo se han implementado las siguientes mejoras y se han ac
    - En `index.php` se ha implementado código JavaScript utilizando `localStorage` para guardar la última ciudad consultada. De esta manera, al recargar la página, el campo de búsqueda se prellena automáticamente con la última ciudad ingresada.
 
 2. **Integración de Iconos del Clima:**
-   - Se han añadido bloques de código en `index.php`, `horas.php` y `semanal.php` para mostrar iconos meteorológicos usando el código de icono devuelto por la API de OpenWeatherMap (por ejemplo, `http://openweathermap.org/img/wn/{icon}@2x.png`).
+   - Se han añadido bloques de código en `index.php`, `weekly.php` y `hourly.php` para mostrar iconos meteorológicos usando el código de icono devuelto por la API de OpenWeatherMap (por ejemplo, `http://openweathermap.org/img/wn/{icon}@2x.png`).
 
 3. **Graficación con Chart.js:**
-   - Se han implementado gráficos en `horas.php` y `semanal.php` utilizando Chart.js para mostrar predicciones horarias y semanales. En ambos casos se combinan gráficos de barras y líneas para representar datos de temperatura y lluvia de manera visual y clara.
+   - Se han implementado gráficos en `hourly.php` y `weekly.php` utilizando Chart.js para mostrar predicciones horarias y semanales. En ambos casos se combinan gráficos de barras y líneas para representar datos de temperatura y lluvia de manera visual y clara.
 
 ## Conclusión
 Este proyecto ha sido una gran oportunidad para desarrollar una aplicación sencilla y práctica que permite consultar el clima en tiempo real, alojada en una instancia EC2 de AWS. Durante el proceso, se añadieron mejoras como el guardado de la última ciudad buscada, la integración de iconos meteorológicos y la visualización de datos con gráficos interactivos.
