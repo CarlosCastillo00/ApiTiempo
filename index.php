@@ -1,97 +1,81 @@
+<?php
+// Incluye el archivo de funciones que se encuentra en utils.php.
+require_once 'utils.php';
+
+// Define la clave API de OpenWeatherMap. Tienes que poner la tuya.
+$apiKey = '';
+
+// Inicializa variables para almacenar datos del clima, coordenadas y nombre de la ciudad.
+$weatherData = false; // Almacena los datos del clima actual, inicialmente en false.
+$lat = $lon = '';     // Variables para latitud y longitud.
+$cityName = '';       // Variable para el nombre de la ciudad.
+
+// Verifica si el usuario ha enviado el formulario con el parámetro 'city'.
+if (isset($_GET['city'])) { // Comprueba si se envió la ciudad.
+    $inputCity = $_GET['city']; // Captura el valor ingresado.
+    $coords = getCityCoordinates($inputCity, $apiKey); // Obtiene las coordenadas de la ciudad.
+    if (!$coords) { // Si no se encuentran las coordenadas.
+        $error = "Ciudad no encontrada o error al conectar con la API de geolocalización."; // Define mensaje de error.
+    } else {
+        $lat = $coords['lat'];      // Asigna la latitud.
+        $lon = $coords['lon'];      // Asigna la longitud.
+        $cityName = $coords['name']; // Asigna el nombre estandarizado de la ciudad.
+        $weatherData = getCurrentWeather($lat, $lon, $apiKey); // Obtiene los datos del clima actual.
+        if (!$weatherData) { // Si falla la obtención del clima.
+            $error = "Error al obtener el clima actual."; // Define mensaje de error.
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <!-- Definir la codificación de caracteres como UTF-8 -->
     <meta charset="UTF-8">
-    <!-- Título de la página que se muestra en la pestaña del navegador -->
-    <title>Información del Tiempo</title>
-    <!-- Vincular el archivo de estilos CSS para el diseño de la página -->
+    <title>Estado del Clima</title>
+    <!-- Enlaza la hoja de estilos CSS -->
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <!-- Encabezado principal de la página -->
-    <h1>Consulta del Tiempo</h1>
-    
+    <h1>Consulta del Clima</h1>
     <!-- Formulario para ingresar el nombre de la ciudad -->
-    <form action="weather.php" method="GET">
-        <!-- Etiqueta para el campo de entrada de la ciudad -->
-        <label for="city">Ciudad:</label>
-        <!-- Campo de texto para ingresar el nombre de la ciudad, es obligatorio -->
-        <input type="text" id="city" name="city" required>
-        <!-- Botón para enviar el formulario -->
-        <button type="submit">Buscar</button>
+    <form action="index.php" method="GET">
+        <label for="city">Ciudad:</label> <!-- Etiqueta para el input -->
+        <input type="text" id="city" name="city" placeholder="Ingresa tu ciudad" required autofocus> <!-- Campo de entrada -->
+        <button type="submit">Consultar</button> <!-- Botón para enviar el formulario -->
     </form>
-
-    <?php
-    // Comprobar si se ha enviado el parámetro 'city' en la solicitud GET
-    if (isset($_GET['city'])) {
-        // Definir la clave API de OpenWeatherMap 
-        $apiKey = ''; 
-        // Obtener el nombre de la ciudad desde la solicitud y codificarlo para la URL
-        $city = urlencode($_GET['city']);
-        // URL para obtener las coordenadas de la ciudad (geolocalización)
-        $geocodeUrl = "http://api.openweathermap.org/geo/1.0/direct?q={$city}&limit=1&appid={$apiKey}";
-
-        // Hacer una solicitud para obtener la latitud y longitud de la ciudad
-        $response = @file_get_contents($geocodeUrl);
-
-        // Comprobar si hubo un error al obtener la respuesta
-        if ($response === FALSE) {
-            // Mostrar mensaje de error si no se puede conectar con la API
-            echo "<p class='error'>Error al conectar con la API de geolocalización.</p>";
-            exit; // Detener el script si no se puede obtener la información
+    <?php if (isset($error)): ?> <!-- Si existe un error, se muestra -->
+        <p class="error"><?= $error ?></p>
+    <?php elseif ($weatherData): ?> <!-- Si se obtienen datos del clima -->
+        <div class="weather-info">
+            <h2>Clima en <?= $cityName ?></h2>
+            <!-- Muestra la imagen del icono del clima, utilizando el código retornado de la API -->
+            <img src="http://openweathermap.org/img/wn/<?= $weatherData['weather'][0]['icon'] ?>@2x.png" alt="Icono del clima">
+            <p>Temperatura: <?= $weatherData['main']['temp'] ?>°C</p> <!-- Muestra la temperatura actual -->
+            <p>Condición: <?= $weatherData['weather'][0]['description'] ?></p> <!-- Muestra la descripción del clima -->
+            <p>Humedad: <?= $weatherData['main']['humidity'] ?>%</p> <!-- Muestra el nivel de humedad -->
+            <p>Viento: <?= $weatherData['wind']['speed'] ?> m/s</p> <!-- Muestra la velocidad del viento -->
+            <div class="nav-links"> <!-- Contenedor para enlaces de navegación -->
+                <a href="hourly.php?lat=<?= $lat ?>&lon=<?= $lon ?>">Previsión por Horas</a> <!-- Enlace a la página de previsión por horas -->
+                <a href="weekly.php?lat=<?= $lat ?>&lon=<?= $lon ?>">Previsión Semanal</a> <!-- Enlace a la página de previsión semanal -->
+            </div>
+        </div>
+    <?php endif; ?>
+    <!-- Script para almacenar y recuperar la última ciudad buscada usando localStorage -->
+    <script>
+      // Al cargar la página, prellenar el campo de ciudad si existe la última ciudad buscada.
+      document.addEventListener("DOMContentLoaded", function() {
+        const cityInput = document.getElementById("city"); // Obtiene el campo de entrada.
+        const lastCity = localStorage.getItem("lastCity"); // Recupera la última ciudad guardada.
+        if (lastCity) { // Si existe una última ciudad guardada.
+          cityInput.value = lastCity; // Prellena el campo con el valor guardado.
         }
+      });
 
-        // Decodificar la respuesta JSON
-        $data = json_decode($response, true);
-
-        // Comprobar si no se encontraron datos para la ciudad
-        if (empty($data)) {
-            echo "<p class='error'>Ciudad no encontrada.</p>";
-            exit; // Detener el script si la ciudad no es válida
-        }
-
-        // Obtener la latitud y longitud de la ciudad
-        $lat = $data[0]['lat'];
-        $lon = $data[0]['lon'];
-
-        // URL para obtener el clima actual usando las coordenadas obtenidas
-        $weatherUrl = "https://api.openweathermap.org/data/2.5/weather?lat={$lat}&lon={$lon}&appid={$apiKey}&units=metric&lang=es";
-        // Hacer una solicitud para obtener los datos del clima
-        $weatherResponse = @file_get_contents($weatherUrl);
-
-        // Comprobar si hubo un error al obtener la información del clima
-        if ($weatherResponse === FALSE) {
-            // Mostrar mensaje de error si no se puede obtener el clima
-            echo "<p class='error'>Error al obtener el tiempo actual.</p>";
-            exit; // Detener el script si no se puede obtener el clima
-        }
-
-        // Decodificar la respuesta JSON de los datos del clima
-        $weatherData = json_decode($weatherResponse, true);
-
-        // Mostrar la información del clima en la página
-        echo "<div class='weather-info'>";
-        // Mostrar el nombre de la ciudad y el clima actual
-        echo "<h2>Tiempo en {$data[0]['name']}</h2>";
-        // Mostrar la temperatura actual
-        echo "<p>Temperatura: {$weatherData['main']['temp']}°C</p>";
-        // Mostrar la condición del clima (descripción)
-        echo "<p>Condición: {$weatherData['weather'][0]['description']}</p>";
-        // Mostrar la humedad
-        echo "<p>Humedad: {$weatherData['main']['humidity']}%</p>";
-        // Mostrar la velocidad del viento
-        echo "<p>Viento: {$weatherData['wind']['speed']} m/s</p>";
-
-        // Mostrar enlaces a previsiones adicionales
-        echo "<div class='nav-links'>";
-        // Enlace para la previsión por horas
-        echo "<a href='hourly.php?lat={$lat}&lon={$lon}'>Previsión por Horas</a>";
-        // Enlace para la previsión semanal
-        echo "<a href='weekly.php?lat={$lat}&lon={$lon}'>Previsión Semanal</a>";
-        echo "</div>";
-        echo "</div>";
-    }
-    ?>
+      // Guarda la ciudad ingresada en localStorage al enviar el formulario.
+      document.querySelector("form").addEventListener("submit", function(e) {
+        const cityInputValue = document.getElementById("city").value; // Obtiene el valor ingresado.
+        localStorage.setItem("lastCity", cityInputValue); // Guarda el valor en localStorage.
+      });
+    </script>
 </body>
 </html>
